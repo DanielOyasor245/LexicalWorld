@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Lexical Quest | RPG Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Game Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=vt323&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Fredoka One', cursive;
+            user-select: none; /* Game-like feel */
+        }
+        
+        /* Game UI Overlay */
+        #game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        /* Custom Game Button */
+        .game-btn {
+            background: linear-gradient(to bottom, #fbbf24, #d97706);
+            border: 4px solid #78350f;
+            color: #fff;
+            text-shadow: 2px 2px 0px #78350f;
+            box-shadow: 0px 6px 0px #78350f;
+            transition: all 0.1s;
+        }
+        .game-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0px 2px 0px #78350f;
+        }
+
+        /* Secondary Button */
+        .game-btn-blue {
+            background: linear-gradient(to bottom, #60a5fa, #2563eb);
+            border: 4px solid #1e3a8a;
+            text-shadow: 2px 2px 0px #1e3a8a;
+            box-shadow: 0px 6px 0px #1e3a8a;
+        }
+        .game-btn-blue:active {
+            transform: translateY(4px);
+            box-shadow: 0px 2px 0px #1e3a8a;
+        }
+
+        /* Health Bar Container */
+        .status-bar {
+            background: rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Loading Screen */
+        #loading-overlay {
+            position: fixed; inset: 0; background: #3b82f6; z-index: 50;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.5s;
+        }
+    </style>
+
+    <!-- Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-overlay">
+        <h1 class="text-6xl text-white mb-4 drop-shadow-md tracking-wider">LEXICAL QUEST</h1>
+        <div class="w-64 h-6 bg-blue-900 rounded-full p-1">
+            <div id="progress-bar" class="h-full bg-yellow-400 rounded-full w-0 transition-all duration-200"></div>
+        </div>
+        <p class="text-white mt-4 font-mono animate-pulse">Loading 3D Assets...</p>
+    </div>
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container" class="fixed inset-0 bg-blue-300 z-0 cursor-grab active:cursor-grabbing"></div>
+
+    <!-- Game UI -->
+    <div id="game-ui" class="flex flex-col justify-between p-4 md:p-8">
+        
+        <!-- Header: Player Stats -->
+        <div class="flex justify-between items-start">
+            
+            <!-- Player Info -->
+            <div class="interactive flex items-center gap-4 status-bar p-3 pr-6">
+                <div class="w-16 h-16 bg-blue-500 rounded-xl border-4 border-white overflow-hidden relative shadow-lg">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Avatar" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="text-white text-xl leading-none mb-1">HERO_01</div>
+                    <div class="w-32 h-3 bg-gray-700 rounded-full overflow-hidden mb-1">
+                        <div class="w-[80%] h-full bg-green-500"></div>
+                    </div>
+                    <div class="text-yellow-400 text-xs font-mono">LVL 14 • WEB3 WARRIOR</div>
+                </div>
+            </div>
+
+            <!-- Menu Button -->
+            <button class="interactive game-btn-blue p-3 rounded-xl">
+                <i data-lucide="menu" class="w-8 h-8 text-white"></i>
+            </button>
+        </div>
+
+        <!-- Center Message (Optional) -->
+        <div id="game-message" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center opacity-0 transition-opacity duration-500">
+            <h2 class="text-6xl text-white drop-shadow-[0_5px_5px_rgba(0,0,0,0.5)] stroke-black stroke-2">ACTION!</h2>
+        </div>
+
+        <!-- Footer: Controls -->
+        <div class="flex flex-col md:flex-row items-end md:items-center justify-between gap-4">
+            
+            <!-- Joystick Hint (Visual only for desktop aesthetic) -->
+            <div class="hidden md:block text-white/80 text-sm bg-black/30 px-4 py-2 rounded-full backdrop-blur-sm">
+                <i data-lucide="mouse-pointer-2" class="inline w-4 h-4 mr-2"></i> Drag to Orbit Camera
+            </div>
+
+            <!-- Action Bar -->
+            <div class="interactive flex gap-3 overflow-x-auto pb-2 w-full md:w-auto justify-center">
+                <button onclick="playAnim('Walking')" class="game-btn px-6 py-3 rounded-xl text-lg tracking-wide min-w-[100px]">
+                    WALK
+                </button>
+                <button onclick="playAnim('Running')" class="game-btn px-6 py-3 rounded-xl text-lg tracking-wide min-w-[100px]">
+                    RUN
+                </button>
+                <button onclick="playAnim('Jump')" class="game-btn px-6 py-3 rounded-xl text-lg tracking-wide min-w-[100px]">
+                    JUMP
+                </button>
+                <button onclick="playAnim('Dance')" class="game-btn-blue px-6 py-3 rounded-xl text-lg tracking-wide min-w-[100px]">
+                    DANCE
+                </button>
+                <button onclick="playAnim('Death')" class="bg-red-500 border-b-4 border-red-800 text-white px-4 py-3 rounded-xl hover:mt-1 hover:border-b-0 hover:mb-1 transition-all">
+                    <i data-lucide="skull" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // --- GLOBAL VARS ---
+        let scene, camera, renderer, model, mixer, actions = {}, activeAction, previousAction;
+        const clock = new THREE.Clock();
+
+        // --- INIT ---
+        function init() {
+            const container = document.getElementById( 'canvas-container' );
+
+            // 1. SCENE & FOG (Bright Sky Blue)
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color( 0x87CEEB ); 
+            scene.fog = new THREE.Fog( 0x87CEEB, 10, 50 );
+
+            // 2. LIGHTING (Outdoor Sun)
+            const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444, 1.5 );
+            hemiLight.position.set( 0, 20, 0 );
+            scene.add( hemiLight );
+
+            const dirLight = new THREE.DirectionalLight( 0xffffff, 1.5 );
+            dirLight.position.set( 10, 20, 10 );
+            dirLight.castShadow = true;
+            dirLight.shadow.camera.top = 5;
+            dirLight.shadow.camera.bottom = -5;
+            dirLight.shadow.camera.left = -5;
+            dirLight.shadow.camera.right = 5;
+            dirLight.shadow.camera.near = 0.1;
+            dirLight.shadow.camera.far = 40;
+            dirLight.shadow.mapSize.width = 2048; // High res shadows
+            dirLight.shadow.mapSize.height = 2048;
+            scene.add( dirLight );
+
+            // 3. ENVIRONMENT (Grass Floor)
+            const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 200, 200 ), new THREE.MeshPhongMaterial( { color: 0x4ade80, depthWrite: false } ) );
+            mesh.rotation.x = - Math.PI / 2;
+            mesh.receiveShadow = true;
+            scene.add( mesh );
+
+            const grid = new THREE.GridHelper( 200, 40, 0x000000, 0x000000 );
+            grid.material.opacity = 0.1;
+            grid.material.transparent = true;
+            scene.add( grid );
+
+            // 4. LOAD 3D MODEL (Robot from Three.js Repo)
+            const loader = new GLTFLoader();
+            loader.load( 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/RobotExpressive/RobotExpressive.glb', function ( gltf ) {
+                model = gltf.scene;
+                model.traverse( function ( object ) {
+                    if ( object.isMesh ) object.castShadow = true;
+                } );
+                scene.add( model );
+
+                // Setup Animations
+                mixer = new THREE.AnimationMixer( model );
+                const animations = gltf.animations;
+                
+                // Store all animations
+                animations.forEach(clip => {
+                    actions[clip.name] = mixer.clipAction(clip);
+                });
+
+                // Start with Idle/Walking
+                activeAction = actions['Walking'];
+                activeAction.play();
+
+                // Hide Loading Screen
+                const overlay = document.getElementById('loading-overlay');
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.display = 'none', 500);
+
+            }, 
+            // Progress
+            function ( xhr ) {
+                if(xhr.lengthComputable) {
+                    const percent = ( xhr.loaded / xhr.total ) * 100;
+                    document.getElementById('progress-bar').style.width = percent + '%';
+                }
+            },
+            // Error
+            function ( e ) {
+                console.error( e );
+                document.querySelector('#loading-overlay h1').innerText = "Error Loading Model";
+            } );
+
+            // 5. RENDERER
+            renderer = new THREE.WebGLRenderer( { antialias: true } );
+            renderer.setPixelRatio( window.devicePixelRatio );
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            renderer.shadowMap.enabled = true;
+            container.appendChild( renderer.domElement );
+
+            // 6. CAMERA & CONTROLS
+            camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
+            camera.position.set( -5, 3, 10 );
+            camera.lookAt( 0, 2, 0 );
+
+            const controls = new OrbitControls( camera, renderer.domElement );
+            controls.target.set( 0, 2, 0 );
+            controls.enablePan = false;
+            controls.enableDamping = true;
+            controls.minDistance = 5;
+            controls.maxDistance = 20;
+            controls.update();
+
+            window.addEventListener( 'resize', onWindowResize );
+            animate();
+        }
+
+        // --- ANIMATION CONTROL LOGIC ---
+        window.playAnim = ( name ) => {
+            // Map button names to actual clip names if needed
+            // The model has: 'Dance', 'Death', 'Idle', 'Jump', 'No', 'Punch', 'Running', 'Sitting', 'Standing', 'ThumbsUp', 'Walking', 'WalkJump', 'Wave', 'Yes'
+            
+            const fadeDuration = 0.4;
+            
+            if(actions[name]) {
+                previousAction = activeAction;
+                activeAction = actions[name];
+
+                if ( previousAction !== activeAction ) {
+                    previousAction.fadeOut( fadeDuration );
+                }
+
+                activeAction
+                    .reset()
+                    .setEffectiveTimeScale( 1 )
+                    .setEffectiveWeight( 1 )
+                    .fadeIn( fadeDuration )
+                    .play();
+                
+                // Handle non-looping actions (like Death or Jump)
+                if(name === 'Death' || name === 'Jump') {
+                     activeAction.clampWhenFinished = true;
+                     activeAction.loop = THREE.LoopOnce;
+                } else {
+                     activeAction.loop = THREE.LoopRepeat;
+                }
+            }
+        };
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize( window.innerWidth, window.innerHeight );
+        }
+
+        function animate() {
+            requestAnimationFrame( animate );
+            const dt = clock.getDelta();
+            if ( mixer ) mixer.update( dt );
+            renderer.render( scene, camera );
+        }
+
+        init();
+        lucide.createIcons();
+    </script>
+</body>
+</html>
