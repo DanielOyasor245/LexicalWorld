@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberPrimate | The Future of Evolution</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            black: '#050505',
+                            dark: '#0a0f0d',
+                            green: '#00ff41',
+                            dim: '#003b0f',
+                            accent: '#ccff00'
+                        }
+                    },
+                    fontFamily: {
+                        display: ['Orbitron', 'sans-serif'],
+                        body: ['Rajdhani', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050505;
+            color: #e5e7eb;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0f0d;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #003b0f;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00ff41;
+        }
+
+        /* Glow Effects */
+        .text-glow {
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+        .box-glow {
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+        }
+        
+        /* Glitch Effect Classes */
+        .glitch-hover:hover {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            color: #00ff41;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        /* 3D Canvas Container */
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none; /* Let clicks pass through to buttons */
+            opacity: 0.6;
+            mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+        }
+
+        @media (min-width: 1024px) {
+            #canvas-container {
+                width: 60%;
+                opacity: 1;
+                mask-image: linear-gradient(to left, black 60%, transparent 100%);
+            }
+        }
+
+        .glass-panel {
+            background: rgba(10, 15, 13, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+        }
+    </style>
+</head>
+<body class="font-body selection:bg-cyber-green selection:text-cyber-black">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-24 right-5 transform translate-x-64 transition-transform duration-300 z-50 glass-panel p-4 rounded-md border-l-4 border-cyber-green flex items-center gap-3">
+        <i data-lucide="check-circle" class="text-cyber-green"></i>
+        <div>
+            <h4 class="font-display font-bold text-cyber-green">System Update</h4>
+            <p class="text-sm text-gray-300" id="toast-msg">Wallet Connected Successfully</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer z-50">
+                    <i data-lucide="hexagon" class="text-cyber-green w-8 h-8 fill-cyber-green/20"></i>
+                    <span class="font-display font-bold text-2xl tracking-wider text-white">CYBER<span class="text-cyber-green">APE</span></span>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#about" class="hover:text-cyber-green transition-colors px-3 py-2 text-lg font-medium">Genesis</a>
+                        <a href="#traits" class="hover:text-cyber-green transition-colors px-3 py-2 text-lg font-medium">Specs</a>
+                        <a href="#roadmap" class="hover:text-cyber-green transition-colors px-3 py-2 text-lg font-medium">Roadmap</a>
+                        <a href="#team" class="hover:text-cyber-green transition-colors px-3 py-2 text-lg font-medium">Team</a>
+                    </div>
+                </div>
+                
+                <!-- Desktop Connect Button -->
+                <div class="hidden md:block">
+                    <button onclick="connectWallet()" class="font-display bg-transparent border border-cyber-green text-cyber-green hover:bg-cyber-green hover:text-black px-6 py-2 rounded-sm font-bold transition-all duration-300 shadow-[0_0_15px_rgba(0,255,65,0.3)] hover:shadow-[0_0_25px_rgba(0,255,65,0.6)] clipped-corner">
+                        CONNECT WALLET
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden z-50">
+                    <button onclick="toggleMenu()" class="text-white hover:text-cyber-green focus:outline-none p-2">
+                        <i data-lucide="menu" id="menu-icon" class="w-8 h-8"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="fixed inset-0 bg-black/95 backdrop-blur-xl transform translate-x-full transition-transform duration-300 md:hidden flex flex-col justify-center items-center space-y-8 h-screen w-screen z-40">
+            <a href="#about" onclick="toggleMenu()" class="font-display text-3xl text-white hover:text-cyber-green transition-colors">Genesis</a>
+            <a href="#traits" onclick="toggleMenu()" class="font-display text-3xl text-white hover:text-cyber-green transition-colors">Specs</a>
+            <a href="#roadmap" onclick="toggleMenu()" class="font-display text-3xl text-white hover:text-cyber-green transition-colors">Roadmap</a>
+            <a href="#team" onclick="toggleMenu()" class="font-display text-3xl text-white hover:text-cyber-green transition-colors">Team</a>
+            <button onclick="connectWallet(); toggleMenu()" class="mt-8 font-display border-2 border-cyber-green text-cyber-green px-8 py-3 text-xl rounded-sm font-bold shadow-[0_0_15px_rgba(0,255,65,0.3)] active:bg-cyber-green active:text-black transition-colors">
+                CONNECT WALLET
+            </button>
+        </div>
+    </nav>
+
+    <!-- 3D Background Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Hero Section -->
+    <section class="relative h-screen flex items-center pt-20 z-10 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-2">
+            <div class="flex flex-col justify-center space-y-6 pt-10 lg:pt-0">
+                <div class="inline-block px-4 py-1 border border-cyber-green/30 rounded-full w-max bg-cyber-green/10">
+                    <span class="text-cyber-green text-xs md:text-sm font-bold tracking-widest uppercase animate-pulse">Minting Live: Phase 1</span>
+                </div>
+                
+                <h1 class="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-none text-white">
+                    EVOLVE <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyber-green to-cyber-accent text-glow">BEYOND</span> <br>
+                    HUMANITY
+                </h1>
+                
+                <p class="text-gray-400 text-base sm:text-xl max-w-lg border-l-2 border-cyber-green pl-4">
+                    8,888 procedurally generated Cyber Primates living on the Ethereum blockchain. Join the resistance.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                    <button class="bg-cyber-green text-cyber-black font-display font-bold text-lg sm:text-xl px-8 py-4 hover:bg-white transition-colors duration-300 clipped-corner box-glow w-full sm:w-auto">
+                        MINT NOW
+                    </button>
+                    <button class="border border-white/20 text-white font-display font-bold text-lg sm:text-xl px-8 py-4 hover:border-cyber-green hover:text-cyber-green transition-colors duration-300 glass-panel w-full sm:w-auto">
+                        JOIN DISCORD
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-8 pt-8 text-gray-500 overflow-x-auto">
+                    <div class="flex-shrink-0">
+                        <span class="block text-2xl font-bold text-white font-display">8.8k</span>
+                        <span class="text-sm uppercase tracking-wide">Supply</span>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span class="block text-2xl font-bold text-white font-display">0.08 ETH</span>
+                        <span class="text-sm uppercase tracking-wide">Price</span>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span class="block text-2xl font-bold text-white font-display">SOLD OUT</span>
+                        <span class="text-sm uppercase tracking-wide">Presale</span>
+                    </div>
+                </div>
+            </div>
+            <!-- The right side is occupied by the 3D canvas -->
+        </div>
+        
+        <!-- Scrolling Ticker -->
+        <div class="absolute bottom-0 w-full bg-cyber-green/10 border-y border-cyber-green/20 h-12 flex items-center overflow-hidden">
+            <div class="whitespace-nowrap animate-[marquee_20s_linear_infinite] font-display font-bold text-cyber-green/50 flex gap-8">
+                <span>CYBER PRIMATE // MINTING NOW</span>
+                <span>//</span>
+                <span>ETH NETWORK</span>
+                <span>//</span>
+                <span>NEXT GEN UTILITY</span>
+                <span>//</span>
+                <span>DAO GOVERNANCE</span>
+                <span>//</span>
+                <span>METAVERSE READY</span>
+                <span>//</span>
+                <span>CYBER PRIMATE // MINTING NOW</span>
+                <span>//</span>
+                <span>ETH NETWORK</span>
+                <span>//</span>
+                <span>NEXT GEN UTILITY</span>
+                <span>//</span>
+                <span>DAO GOVERNANCE</span>
+                <span>//</span>
+                <span>METAVERSE READY</span>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+    </style>
+
+    <!-- About Section -->
+    <section id="about" class="py-16 md:py-24 relative bg-cyber-black">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
+                <div class="relative order-2 md:order-1">
+                    <div class="absolute -inset-4 bg-cyber-green/20 blur-xl rounded-full"></div>
+                    <div class="relative glass-panel p-8 border border-cyber-green/30 rounded-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                        <!-- Abstract CSS Art representing an NFT Card -->
+                        <div class="aspect-square bg-gradient-to-br from-gray-800 to-black rounded-lg overflow-hidden relative border border-gray-700">
+                            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMwMGZmMTEiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMzhoNDB2MmgtNDB6Ii8+PHBhdGggZD0iTTAgMTloNDB2MmgtNDB6Ii8+PHBhdGggZD0iTTAgMGg0MHYyaC00MHoiLz48cGF0aCBkPSJNMCA1N2g0MHYyaC00MHoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-50"></div>
+                            <!-- Simple CSS Shapes to emulate image content -->
+                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-cyber-green rounded-full blur-2xl opacity-40"></div>
+                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-cyber-green/40 rotate-45"></div>
+                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 border border-white/20"></div>
+                            <div class="absolute bottom-4 left-4 font-display font-bold text-white text-xl">#4092</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="order-1 md:order-2">
+                    <h2 class="font-display text-4xl md:text-5xl font-bold mb-6 text-white">THE <span class="text-cyber-green">GENESIS</span></h2>
+                    <p class="text-gray-400 text-lg mb-6 leading-relaxed">
+                        In the year 2077, the biological barrier was breached. The CyberPrimates were created not born—a perfect fusion of organic adaptability and digital immortality.
+                    </p>
+                    <p class="text-gray-400 text-lg mb-8 leading-relaxed">
+                        Escaping the labs of Neo-Tokyo, these 8,888 unique entities roam the Ethereum blockchain, seeking holders worthy of joining the digital resistance. Each Ape grants access to the "Jungle Mainframe," an exclusive DAO with treasury rights.
+                    </p>
+                    
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="p-4 border border-gray-800 bg-gray-900/50 hover:border-cyber-green transition-colors">
+                            <i data-lucide="shield" class="text-cyber-green mb-2"></i>
+                            <h3 class="font-display text-white font-bold">Ownership</h3>
+                            <p class="text-gray-500 text-sm">Full IP rights given to holders.</p>
+                        </div>
+                        <div class="p-4 border border-gray-800 bg-gray-900/50 hover:border-cyber-green transition-colors">
+                            <i data-lucide="zap" class="text-cyber-green mb-2"></i>
+                            <h3 class="font-display text-white font-bold">Utility</h3>
+                            <p class="text-gray-500 text-sm">Staking for $BANANA token.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Traits/Rarity Section -->
+    <section id="traits" class="py-16 md:py-24 bg-cyber-dark relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-display text-4xl md:text-5xl font-bold mb-4">TRAIT <span class="text-cyber-green">RARITY</span></h2>
+                <p class="text-gray-400">Over 150+ hand-drawn traits across 7 categories.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card 1 -->
+                <div class="group glass-panel p-6 hover:bg-cyber-green/10 transition-all duration-300 cursor-pointer">
+                    <div class="w-full h-40 bg-gray-800 mb-4 rounded flex items-center justify-center overflow-hidden relative">
+                         <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent z-10 opacity-60"></div>
+                         <i data-lucide="glasses" class="w-16 h-16 text-cyber-green group-hover:scale-110 transition-transform"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white mb-2">Optics</h3>
+                    <p class="text-sm text-gray-400">Lasers, VR Headsets, Cyborg Eyes. 20 variations.</p>
+                    <div class="mt-4 w-full bg-gray-800 h-1 rounded-full overflow-hidden">
+                        <div class="bg-cyber-green h-full w-[20%]"></div>
+                    </div>
+                    <p class="text-xs text-cyber-green mt-1 text-right">Rare</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="group glass-panel p-6 hover:bg-cyber-green/10 transition-all duration-300 cursor-pointer">
+                    <div class="w-full h-40 bg-gray-800 mb-4 rounded flex items-center justify-center overflow-hidden relative">
+                         <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent z-10 opacity-60"></div>
+                         <i data-lucide="cpu" class="w-16 h-16 text-purple-500 group-hover:scale-110 transition-transform"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white mb-2">Implants</h3>
+                    <p class="text-sm text-gray-400">Brain chips, Neural Links, Metal plating. 15 variations.</p>
+                     <div class="mt-4 w-full bg-gray-800 h-1 rounded-full overflow-hidden">
+                        <div class="bg-purple-500 h-full w-[10%]"></div>
+                    </div>
+                    <p class="text-xs text-purple-500 mt-1 text-right">Legendary</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="group glass-panel p-6 hover:bg-cyber-green/10 transition-all duration-300 cursor-pointer">
+                    <div class="w-full h-40 bg-gray-800 mb-4 rounded flex items-center justify-center overflow-hidden relative">
+                         <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent z-10 opacity-60"></div>
+                         <i data-lucide="shirt" class="w-16 h-16 text-blue-400 group-hover:scale-110 transition-transform"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white mb-2">Attire</h3>
+                    <p class="text-sm text-gray-400">Space suits, Hoodies, Military Tech. 45 variations.</p>
+                     <div class="mt-4 w-full bg-gray-800 h-1 rounded-full overflow-hidden">
+                        <div class="bg-blue-400 h-full w-[60%]"></div>
+                    </div>
+                    <p class="text-xs text-blue-400 mt-1 text-right">Common</p>
+                </div>
+
+                 <!-- Card 4 -->
+                 <div class="group glass-panel p-6 hover:bg-cyber-green/10 transition-all duration-300 cursor-pointer">
+                    <div class="w-full h-40 bg-gray-800 mb-4 rounded flex items-center justify-center overflow-hidden relative">
+                         <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent z-10 opacity-60"></div>
+                         <i data-lucide="crown" class="w-16 h-16 text-yellow-500 group-hover:scale-110 transition-transform"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white mb-2">Headgear</h3>
+                    <p class="text-sm text-gray-400">Halos, Crowns, Helmets. 10 variations.</p>
+                     <div class="mt-4 w-full bg-gray-800 h-1 rounded-full overflow-hidden">
+                        <div class="bg-yellow-500 h-full w-[2%]"></div>
+                    </div>
+                    <p class="text-xs text-yellow-500 mt-1 text-right">1 of 1s</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roadmap Section -->
+    <section id="roadmap" class="py-16 md:py-24 bg-cyber-black">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-display text-4xl md:text-5xl font-bold mb-4">ACTIVATION <span class="text-cyber-green">PLAN</span></h2>
+                <p class="text-gray-400">The path to digital ascension.</p>
+            </div>
+
+            <div class="relative space-y-12 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-cyber-green before:to-transparent">
+                
+                <!-- Item 1 -->
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-cyber-black bg-cyber-green shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_15px_rgba(0,255,65,0.5)] z-10">
+                        <span class="text-black font-bold text-xs">01</span>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 glass-panel rounded-xl border-l-4 border-cyber-green">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-display font-bold text-xl text-white">System Boot</span>
+                            <span class="text-xs text-cyber-green font-mono border border-cyber-green px-2 py-0.5 rounded">COMPLETED</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Community building, Website Launch, Smart Contract Audit. The initial viral marketing campaign begins.</p>
+                    </div>
+                </div>
+
+                <!-- Item 2 -->
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-cyber-black bg-gray-800 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 group-hover:bg-cyber-green transition-colors">
+                        <span class="text-white font-bold text-xs">02</span>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 glass-panel rounded-xl border-l-4 border-gray-600 hover:border-cyber-green transition-colors">
+                         <div class="flex justify-between items-center mb-1">
+                            <span class="font-display font-bold text-xl text-white">Mint Day</span>
+                            <span class="text-xs text-cyber-accent font-mono border border-cyber-accent px-2 py-0.5 rounded text-cyber-black">IN PROGRESS</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Public Sale goes live. Reveal happens 48h after sellout. Rarity Tools listing immediately after reveal.</p>
+                    </div>
+                </div>
+
+                <!-- Item 3 -->
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-cyber-black bg-gray-800 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 group-hover:bg-cyber-green transition-colors">
+                        <span class="text-white font-bold text-xs">03</span>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 glass-panel rounded-xl border-l-4 border-gray-600 hover:border-cyber-green transition-colors">
+                         <div class="flex justify-between items-center mb-1">
+                            <span class="font-display font-bold text-xl text-white">Tokenomics</span>
+                            <span class="text-xs text-gray-500 font-mono border border-gray-500 px-2 py-0.5 rounded">Q4 2025</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Staking platform launch. Holders earn $BANANA daily. 'Mutant' serum airdrop for long-term holders.</p>
+                    </div>
+                </div>
+                
+                 <!-- Item 4 -->
+                 <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-cyber-black bg-gray-800 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 group-hover:bg-cyber-green transition-colors">
+                        <span class="text-white font-bold text-xs">04</span>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 glass-panel rounded-xl border-l-4 border-gray-600 hover:border-cyber-green transition-colors">
+                         <div class="flex justify-between items-center mb-1">
+                            <span class="font-display font-bold text-xl text-white">The Jungle DAO</span>
+                            <span class="text-xs text-gray-500 font-mono border border-gray-500 px-2 py-0.5 rounded">2026</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Community treasury unlocks. Buying land in the Sandbox. 3D avatars for Metaverse integration.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="py-16 md:py-24 bg-cyber-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="font-display text-4xl md:text-5xl font-bold mb-16 text-center">CORE <span class="text-cyber-green">TEAM</span></h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Member 1 -->
+                <div class="glass-panel p-6 text-center hover:-translate-y-2 transition-transform duration-300">
+                    <div class="w-24 h-24 mx-auto bg-gray-700 rounded-full mb-4 border-2 border-cyber-green flex items-center justify-center">
+                        <i data-lucide="code" class="text-white w-10 h-10"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white">0xDev</h3>
+                    <p class="text-cyber-green text-sm uppercase tracking-wider mb-3">Lead Engineer</p>
+                    <p class="text-gray-400 text-sm">Ex-FAANG engineer turned Web3 native. Solidity whisperer.</p>
+                </div>
+
+                 <!-- Member 2 -->
+                 <div class="glass-panel p-6 text-center hover:-translate-y-2 transition-transform duration-300">
+                    <div class="w-24 h-24 mx-auto bg-gray-700 rounded-full mb-4 border-2 border-cyber-green flex items-center justify-center">
+                        <i data-lucide="palette" class="text-white w-10 h-10"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white">PixelKong</h3>
+                    <p class="text-cyber-green text-sm uppercase tracking-wider mb-3">Artist</p>
+                    <p class="text-gray-400 text-sm">Digital artist with 10 years exp. Featured on SuperRare.</p>
+                </div>
+
+                 <!-- Member 3 -->
+                 <div class="glass-panel p-6 text-center hover:-translate-y-2 transition-transform duration-300">
+                    <div class="w-24 h-24 mx-auto bg-gray-700 rounded-full mb-4 border-2 border-cyber-green flex items-center justify-center">
+                        <i data-lucide="megaphone" class="text-white w-10 h-10"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-white">AlphaApe</h3>
+                    <p class="text-cyber-green text-sm uppercase tracking-wider mb-3">Marketing</p>
+                    <p class="text-gray-400 text-sm">Strategist behind 3 sold-out blue chip projects.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="py-16 md:py-24 bg-cyber-black">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="font-display text-4xl font-bold mb-12 text-center">F.A.Q</h2>
+            <div class="space-y-4" id="faq-container">
+                <!-- Accordion items generated by JS or static -->
+                <div class="glass-panel rounded-lg overflow-hidden">
+                    <button class="w-full px-6 py-4 text-left font-bold text-white flex justify-between items-center focus:outline-none" onclick="toggleFaq(this)">
+                        <span>What is the Mint Price?</span>
+                        <i data-lucide="chevron-down" class="transition-transform"></i>
+                    </button>
+                    <div class="px-6 pb-4 hidden text-gray-400">
+                        The mint price is 0.08 ETH for both whitelist and public sale.
+                    </div>
+                </div>
+                
+                <div class="glass-panel rounded-lg overflow-hidden">
+                    <button class="w-full px-6 py-4 text-left font-bold text-white flex justify-between items-center focus:outline-none" onclick="toggleFaq(this)">
+                        <span>Which blockchain?</span>
+                        <i data-lucide="chevron-down" class="transition-transform"></i>
+                    </button>
+                    <div class="px-6 pb-4 hidden text-gray-400">
+                        CyberPrimate lives on the Ethereum Mainnet (ERC-721).
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-lg overflow-hidden">
+                    <button class="w-full px-6 py-4 text-left font-bold text-white flex justify-between items-center focus:outline-none" onclick="toggleFaq(this)">
+                        <span>How do I join the Whitelist?</span>
+                        <i data-lucide="chevron-down" class="transition-transform"></i>
+                    </button>
+                    <div class="px-6 pb-4 hidden text-gray-400">
+                        Join our Discord and participate in community events or hold a partner NFT.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black border-t border-gray-800 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0">
+                 <span class="font-display font-bold text-2xl text-white">CYBER<span class="text-cyber-green">APE</span></span>
+                 <p class="text-gray-500 text-sm mt-2">© 2025 CyberPrimate NFT. All rights reserved.</p>
+            </div>
+            <div class="flex space-x-6">
+                <a href="#" class="text-gray-400 hover:text-cyber-green transition-colors"><i data-lucide="twitter"></i></a>
+                <a href="#" class="text-gray-400 hover:text-cyber-green transition-colors"><i data-lucide="disc"></i></a>
+                <a href="#" class="text-gray-400 hover:text-cyber-green transition-colors"><i data-lucide="instagram"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // --- 1. Initialize Lucide Icons ---
+        lucide.createIcons();
+
+        // --- Mobile Menu Logic ---
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            
+            // Toggle translate class
+            if (menu.classList.contains('translate-x-full')) {
+                menu.classList.remove('translate-x-full');
+                // Change icon to X
+                icon.setAttribute('data-lucide', 'x');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+            } else {
+                menu.classList.add('translate-x-full');
+                // Change icon back to Menu
+                icon.setAttribute('data-lucide', 'menu');
+                document.body.style.overflow = ''; // Restore scrolling
+            }
+            lucide.createIcons(); // Re-render icons after change
+        }
+
+        // --- 2. FAQ Toggle Logic ---
+        function toggleFaq(btn) {
+            const content = btn.nextElementSibling;
+            const icon = btn.querySelector('svg');
+            
+            content.classList.toggle('hidden');
+            if(content.classList.contains('hidden')) {
+                icon.style.transform = 'rotate(0deg)';
+                btn.classList.remove('text-cyber-green');
+            } else {
+                icon.style.transform = 'rotate(180deg)';
+                btn.classList.add('text-cyber-green');
+            }
+        }
+
+        // --- 3. Wallet Connection Toast ---
+        function connectWallet() {
+            const toast = document.getElementById('toast');
+            // Reset state
+            toast.classList.remove('translate-x-64');
+            
+            // Auto hide
+            setTimeout(() => {
+                toast.classList.add('translate-x-64');
+            }, 3000);
+        }
+
+        // --- 4. Three.js Procedural Cyber Monkey ---
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            
+            // Camera
+            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            // Renderer
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // --- The Monkey Construction (Group) ---
+            const apeGroup = new THREE.Group();
+
+            // Materials
+            const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x00ff41, wireframe: true, transparent: true, opacity: 0.3 });
+            const solidDarkMat = new THREE.MeshPhongMaterial({ color: 0x050505, shininess: 100, flatShading: true });
+            const eyeGlowMat = new THREE.MeshBasicMaterial({ color: 0xccff00 });
+
+            // 1. Head (Icosahedron - Low Poly look)
+            const headGeo = new THREE.IcosahedronGeometry(1.5, 1);
+            const headMesh = new THREE.Mesh(headGeo, solidDarkMat);
+            const headWire = new THREE.Mesh(headGeo, wireframeMat);
+            headMesh.add(headWire);
+            apeGroup.add(headMesh);
+
+            // 2. Snout (Box)
+            const snoutGeo = new THREE.BoxGeometry(1, 0.8, 1);
+            const snoutMesh = new THREE.Mesh(snoutGeo, solidDarkMat);
+            snoutMesh.position.set(0, -0.4, 1.2);
+            const snoutWire = new THREE.Mesh(snoutGeo, wireframeMat);
+            snoutMesh.add(snoutWire);
+            apeGroup.add(snoutMesh);
+
+            // 3. Ears (Torus)
+            const earGeo = new THREE.TorusGeometry(0.5, 0.15, 8, 20);
+            
+            const leftEar = new THREE.Mesh(earGeo, solidDarkMat);
+            leftEar.position.set(-1.4, 0.2, 0);
+            leftEar.rotation.y = Math.PI / 4;
+            const leftEarWire = new THREE.Mesh(earGeo, wireframeMat);
+            leftEar.add(leftEarWire);
+            apeGroup.add(leftEar);
+
+            const rightEar = new THREE.Mesh(earGeo, solidDarkMat);
+            rightEar.position.set(1.4, 0.2, 0);
+            rightEar.rotation.y = -Math.PI / 4;
+            const rightEarWire = new THREE.Mesh(earGeo, wireframeMat);
+            rightEar.add(rightEarWire);
+            apeGroup.add(rightEar);
+
+            // 4. Eyes (Glowing Spheres)
+            const eyeGeo = new THREE.SphereGeometry(0.25, 16, 16);
+            
+            const leftEye = new THREE.Mesh(eyeGeo, eyeGlowMat);
+            leftEye.position.set(-0.5, 0.3, 1.2);
+            apeGroup.add(leftEye);
+
+            const rightEye = new THREE.Mesh(eyeGeo, eyeGlowMat);
+            rightEye.position.set(0.5, 0.3, 1.2);
+            apeGroup.add(rightEye);
+
+            // 5. Floating Particles (Background)
+            const particlesGeo = new THREE.BufferGeometry();
+            const particleCount = 200;
+            const posArray = new Float32Array(particleCount * 3);
+            
+            for(let i = 0; i < particleCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 15;
+            }
+            particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMat = new THREE.PointsMaterial({
+                size: 0.05,
+                color: 0x00ff41,
+                transparent: true,
+                opacity: 0.8
+            });
+            const particlesMesh = new THREE.Points(particlesGeo, particlesMat);
+            scene.add(particlesMesh);
+
+            scene.add(apeGroup);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0x00ff41, 2, 20);
+            pointLight.position.set(5, 5, 5);
+            scene.add(pointLight);
+            
+            const blueLight = new THREE.PointLight(0x0000ff, 2, 20);
+            blueLight.position.set(-5, -5, 5);
+            scene.add(blueLight);
+
+            // Animation Loop
+            let mouseX = 0;
+            let mouseY = 0;
+            
+            // Track mouse for interaction
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Idle Rotation
+                apeGroup.rotation.y += 0.005;
+                particlesMesh.rotation.y -= 0.002;
+
+                // Mouse Interaction (Parallax)
+                // Smoothly interpolate current rotation to target rotation based on mouse
+                const targetRotX = mouseY * 0.5;
+                const targetRotY = mouseX * 0.5;
+                
+                apeGroup.rotation.x += (targetRotX - apeGroup.rotation.x) * 0.05;
+                // Note: We add to the auto-rotation Y, so we use a relative offset for mouse
+                // Since the auto rotation keeps changing Y, we'll just tilt the group container or apply simple offset
+                
+                // Pulsing Eyes
+                const scale = 1 + Math.sin(Date.now() * 0.005) * 0.1;
+                leftEye.scale.set(scale, scale, scale);
+                rightEye.scale.set(scale, scale, scale);
+
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            // Handle Resize
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        }
+
+        // --- 5. Navbar Scroll Effect ---
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('bg-black/90', 'backdrop-blur-md', 'shadow-lg');
+            } else {
+                nav.classList.remove('bg-black/90', 'backdrop-blur-md', 'shadow-lg');
+            }
+        });
+
+        // Initialize Everything
+        document.addEventListener('DOMContentLoaded', () => {
+            initThreeJS();
+        });
+
+    </script>
+</body>
+</html>
