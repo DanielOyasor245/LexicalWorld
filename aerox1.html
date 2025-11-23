@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AERO X1 | The Future of Flight</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        /* --- CSS VARIABLES FOR UI --- 
+           These update automatically via JS based on the CONFIG object below 
+        */
+        :root {
+            --primary-color: 0, 255, 255; /* Cyan default */
+        }
+
+        body {
+            margin: 0;
+            background-color: #050505;
+            font-family: 'Rajdhani', sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .tech-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Dynamic Glassmorphism */
+        .glass-panel {
+            background: rgba(10, 10, 20, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(var(--primary-color), 0.3);
+            box-shadow: 0 0 20px rgba(var(--primary-color), 0.1);
+        }
+        
+        .glass-card {
+            background: linear-gradient(145deg, rgba(20,20,30,0.9), rgba(10,10,20,0.8));
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(var(--primary-color), 0.6);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: rgb(var(--primary-color)); border-radius: 4px; }
+
+        .scan-line {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, rgb(var(--primary-color)), transparent);
+            animation: scan 4s linear infinite;
+            opacity: 0.5;
+            position: fixed;
+            top: 0;
+            z-index: 50;
+            pointer-events: none;
+        }
+        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+        
+        /* Contact Button Hover Effect */
+        .dev-link:hover {
+            text-shadow: 0 0 8px rgba(var(--primary-color), 0.8);
+            color: rgb(var(--primary-color));
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="scan-line"></div>
+    <div id="canvas-container"></div>
+
+    <main class="relative z-10">
+        
+        <!-- HERO SECTION -->
+        <section class="min-h-screen flex flex-col p-6 md:p-12 relative">
+            <nav class="flex justify-between items-center mb-auto">
+                <div class="flex items-center gap-4">
+                    <!-- Logo color handled by JS Config -->
+                    <div id="logo-box" class="w-10 h-10 border-2 flex items-center justify-center rounded transition-colors">
+                        <div id="logo-inner" class="w-6 h-6"></div>
+                    </div>
+                    <div class="text-2xl tech-font tracking-widest font-bold">AERO<span id="logo-text" class="transition-colors">X1</span></div>
+                </div>
+                <div class="hidden md:flex gap-8 text-sm font-bold tracking-widest text-gray-400">
+                    <a href="#specs" class="hover:text-white transition">SPECS</a>
+                    <a href="#tech" class="hover:text-white transition">TECHNOLOGY</a>
+                    <a href="#preorder" class="hover:text-white transition">PRE-ORDER</a>
+                </div>
+            </nav>
+
+            <div class="flex flex-col md:flex-row items-end justify-between w-full mt-auto md:pb-20">
+                <div class="max-w-xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                        <span id="version-text" class="text-xs tracking-[0.3em] uppercase">Prototype Build v4.2</span>
+                    </div>
+                    <h1 class="text-7xl md:text-9xl font-black leading-none mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">
+                        SILENT <br> PREDATOR
+                    </h1>
+                    <p id="hero-desc" class="text-gray-300 text-lg mb-8 border-l-2 pl-4 max-w-md">
+                        The X1 utilizes ion-propulsion hybrid rotors for near-silent operation. 
+                        Autonomous navigation powered by neural-net AI.
+                    </p>
+                    <button id="hero-btn" class="text-black font-bold py-4 px-10 skew-x-[-10deg] transition-transform hover:scale-105">
+                        <span class="skew-x-[10deg] inline-block tech-font tracking-widest">INITIATE FLIGHT</span>
+                    </button>
+                </div>
+                
+                <div class="hidden md:flex flex-col items-center animate-bounce gap-2 opacity-50" id="scroll-hint">
+                    <span class="text-xs tracking-widest">SCROLL TO ANALYZE</span>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- SPECS SECTION -->
+        <section id="specs" class="min-h-screen flex items-center justify-end p-6 md:p-24 relative">
+            <div class="max-w-lg w-full">
+                <h2 class="text-5xl tech-font font-bold mb-12 text-right"><span class="config-text-color">//</span> SYSTEM SPECS</h2>
+                <div class="space-y-6">
+                    <div class="glass-card p-6 rounded-r-xl border-l-4 border-cyan-500">
+                        <div class="flex justify-between items-end mb-2">
+                            <h3 class="text-xl font-bold text-gray-300">MAX SPEED</h3>
+                            <span class="text-3xl tech-font config-text-color">320 <span class="text-sm text-gray-500">KM/H</span></span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-1 mt-2"><div class="bg-cyan-500 h-1" style="width: 95%"></div></div>
+                    </div>
+                    <div class="glass-card p-6 rounded-r-xl border-l-4 border-purple-500">
+                        <div class="flex justify-between items-end mb-2">
+                            <h3 class="text-xl font-bold text-gray-300">BATTERY LIFE</h3>
+                            <span class="text-3xl tech-font text-purple-400">4.5 <span class="text-sm text-gray-500">HOURS</span></span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-1 mt-2"><div class="bg-purple-500 h-1" style="width: 80%"></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TECHNOLOGY SECTION -->
+        <section id="tech" class="min-h-screen flex flex-col items-center justify-center p-6 md:p-24 relative pointer-events-none">
+            <div class="glass-panel p-12 rounded-3xl max-w-4xl w-full text-center border border-white/10 pointer-events-auto">
+                <div class="inline-block px-4 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-bold tracking-widest mb-6 config-text-color">
+                    CLASSIFIED TECHNOLOGY
+                </div>
+                <h2 class="text-4xl md:text-6xl tech-font font-bold mb-8">NEURAL-LINK <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">AI CORE</span></h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Obstacle Avoidance</h3>
+                        <p class="text-gray-400 text-sm">LIDAR arrays map the environment 400 times per second.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Instant Reflexes</h3>
+                        <p class="text-gray-400 text-sm">Onboard edge computing processes flight adjustments instantly.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Swarm Capable</h3>
+                        <p class="text-gray-400 text-sm">Link up to 50 units for synchronized surveillance grids.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRICING SECTION -->
+        <section id="preorder" class="min-h-screen flex flex-col items-center justify-center p-6 md:p-24">
+            <h2 class="text-5xl tech-font font-bold mb-16 text-center">SELECT YOUR <span class="config-text-color">LOADOUT</span></h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl w-full">
+                <div class="glass-card p-10 rounded-2xl flex flex-col relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-gray-800 text-white text-xs px-3 py-1 rounded-bl-lg font-bold tracking-widest">CIVILIAN</div>
+                    <h3 class="text-3xl font-bold mb-2">BASE MODEL</h3>
+                    <div class="text-4xl tech-font config-text-color mb-6">$899</div>
+                    <ul class="space-y-4 mb-8 text-gray-400 flex-1">
+                        <li>✓ 4k Camera Module</li>
+                        <li>✓ 20min Flight Time</li>
+                        <li>✓ Standard Controller</li>
+                    </ul>
+                    <button class="w-full border font-bold py-4 rounded hover:text-black transition uppercase tracking-widest config-border config-text config-hover-bg">
+                        Reserve Unit
+                    </button>
+                </div>
+                <div class="glass-card p-10 rounded-2xl flex flex-col relative overflow-hidden border-t-4 border-purple-500">
+                    <div class="absolute top-0 right-0 bg-purple-600 text-white text-xs px-3 py-1 rounded-bl-lg font-bold tracking-widest">PRO EDITION</div>
+                    <h3 class="text-3xl font-bold mb-2">TACTICAL OPS</h3>
+                    <div class="text-4xl tech-font text-purple-400 mb-6">$1,499</div>
+                    <ul class="space-y-4 mb-8 text-gray-400 flex-1">
+                        <li>✓ 8k Thermal Camera</li>
+                        <li>✓ 45min Flight Time</li>
+                        <li>✓ VR Headset Included</li>
+                    </ul>
+                    <button class="w-full bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-bold py-4 rounded hover:shadow-lg transition uppercase tracking-widest">
+                        Pre-Order Now
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROFESSIONAL FOOTER -->
+        <footer class="border-t border-gray-900 bg-black py-12 text-center relative z-20">
+            <div class="text-2xl tech-font tracking-widest font-bold mb-4 text-gray-600">AERO<span class="text-gray-800">X1</span></div>
+            <p class="text-gray-600 text-sm mb-6">© 2025 Aero Industries. Designed for the future.</p>
+            
+            <!-- CONTACT / DEV INFO -->
+            <div class="flex justify-center gap-6 text-xs font-bold tracking-widest text-gray-700 uppercase">
+                <a href="mailto:your-email@example.com" class="dev-link transition-colors">
+                    <span class="config-text-color opacity-50 mr-1">✉</span> Contact Support
+                </a>
+                <span class="text-gray-800">|</span>
+                <a href="https://t.me/yourusername" target="_blank" class="dev-link transition-colors">
+                    <span class="config-text-color opacity-50 mr-1">✈</span> Telegram Dev
+                </a>
+                <span class="text-gray-800">|</span>
+                <a href="#" class="dev-link transition-colors">Customization Services</a>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        /**
+         * ==========================================
+         * USER CONFIGURATION (EDIT THIS SECTION)
+         * ==========================================
+         */
+        const CONFIG = {
+            // Colors (Hexadecimal format 0xRRGGBB for 3D, standard CSS strings for UI)
+            colors: {
+                primaryHex: 0x00ffff,   // The main Neon Cyan used in 3D
+                accentHex: 0xff00ff,    // Secondary Magenta light
+                backgroundHex: 0x050505, // Dark background
+                
+                // UI CSS Colors (Must match visually with Hex above)
+                primaryCss: '#00ffff',  
+                primaryRgb: '0, 255, 255' // Used for transparent effects
+            },
+            drone: {
+                speed: 0.5,        // Rotation speed of propellers
+                hoverIntensity: 1, // How much it bobs up and down
+            }
+        };
+
+        // --- APPLY CONFIG TO DOM (UI) ---
+        // This applies settings to CSS variables and Elements instantly
+        document.documentElement.style.setProperty('--primary-color', CONFIG.colors.primaryRgb);
+        
+        // Apply colors to specific UI elements by ID or Class
+        const applyColor = (selector, property, value) => {
+            document.querySelectorAll(selector).forEach(el => el.style[property] = value);
+        };
+        
+        applyColor('#logo-box', 'borderColor', CONFIG.colors.primaryCss);
+        applyColor('#logo-inner', 'backgroundColor', CONFIG.colors.primaryCss);
+        applyColor('#logo-text', 'color', CONFIG.colors.primaryCss);
+        applyColor('#version-text', 'color', CONFIG.colors.primaryCss);
+        applyColor('#hero-desc', 'borderColor', CONFIG.colors.primaryCss);
+        applyColor('#hero-btn', 'backgroundColor', CONFIG.colors.primaryCss);
+        applyColor('#scroll-hint', 'color', CONFIG.colors.primaryCss);
+        
+        // Apply to general utility classes
+        applyColor('.config-text-color', 'color', CONFIG.colors.primaryCss);
+        applyColor('.config-border', 'borderColor', CONFIG.colors.primaryCss);
+        applyColor('.config-text', 'color', CONFIG.colors.primaryCss);
+        
+        // Hover states are handled via CSS variable --primary-color
+
+        // --- THREE.JS LOGIC ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(CONFIG.colors.backgroundHex);
+        scene.fog = new THREE.FogExp2(CONFIG.colors.backgroundHex, 0.02); 
+
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 2, 7);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+        scene.add(ambientLight);
+        
+        const spotLight = new THREE.SpotLight(CONFIG.colors.primaryHex, 2);
+        spotLight.position.set(10, 20, 10);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+
+        const rimLight = new THREE.PointLight(CONFIG.colors.accentHex, 1);
+        rimLight.position.set(-10, 5, -10);
+        scene.add(rimLight);
+
+        const underLight = new THREE.PointLight(CONFIG.colors.primaryHex, 0.5);
+        underLight.position.set(0, -2, 0);
+        scene.add(underLight);
+
+        // --- Procedural Drone ---
+        const droneGroup = new THREE.Group();
+        scene.add(droneGroup);
+
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3, metalness: 0.8 });
+        const chromeMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.1, metalness: 1.0 });
+        const glowMat = new THREE.MeshBasicMaterial({ color: CONFIG.colors.primaryHex }); // Uses Config
+        const redGlowMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+        // Body Construction
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.4, 0.8), bodyMat);
+        droneGroup.add(body);
+        
+        const cockpit = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.6), chromeMat);
+        cockpit.position.set(0, 0.2, 0);
+        droneGroup.add(cockpit);
+
+        const frontLight = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.05), glowMat);
+        frontLight.position.set(0, 0, 0.41);
+        droneGroup.add(frontLight);
+
+        const rearLight = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.05), redGlowMat);
+        rearLight.position.set(0, 0, -0.41);
+        droneGroup.add(rearLight);
+
+        // Rotor Logic
+        const armGeo = new THREE.CylinderGeometry(0.08, 0.08, 2.5);
+        const propellerGeo = new THREE.BoxGeometry(2.2, 0.02, 0.15);
+        
+        function createRotor(x, z, dir) {
+            const g = new THREE.Group();
+            g.position.set(x, 0, z);
+            
+            const housing = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.2, 0.4, 16), bodyMat);
+            housing.position.y = 0.1;
+            
+            const prop = new THREE.Mesh(propellerGeo, chromeMat);
+            prop.position.y = 0.4;
+            prop.userData = { speed: dir * CONFIG.drone.speed }; // Uses Config
+            
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.02, 8, 32), glowMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 0.4;
+
+            g.add(housing, prop, ring);
+            
+            const armMesh = new THREE.Mesh(armGeo, bodyMat);
+            armMesh.position.set(x/2, 0, z/2); 
+            armMesh.lookAt(x, 0, z); 
+            armMesh.rotation.x = Math.PI/2; 
+            armMesh.rotation.z += Math.PI/2; 
+            droneGroup.add(armMesh);
+
+            g.userData = { prop: prop };
+            return g;
+        }
+
+        const rotors = [
+            createRotor(1.8, 1.5, 1),
+            createRotor(-1.8, 1.5, -1),
+            createRotor(1.8, -1.5, -1),
+            createRotor(-1.8, -1.5, 1)
+        ];
+        rotors.forEach(r => droneGroup.add(r));
+
+        // Environment
+        const gridHelper = new THREE.GridHelper(80, 80, CONFIG.colors.primaryHex, 0x111111);
+        gridHelper.position.y = -2;
+        scene.add(gridHelper);
+
+        const particleCount = 400;
+        const posArray = new Float32Array(particleCount * 3);
+        for(let i=0; i<particleCount*3; i++) posArray[i] = (Math.random()-0.5)*50;
+        const particles = new THREE.Points(
+            new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(posArray, 3)),
+            new THREE.PointsMaterial({ size: 0.05, color: CONFIG.colors.primaryHex, transparent: true, opacity: 0.4 })
+        );
+        scene.add(particles);
+
+        // --- Animation & Scrollytelling ---
+        let mouseX = 0, mouseY = 0;
+        let scrollY = 0;
+
+        document.addEventListener('mousemove', e => {
+            mouseX = (e.clientX - window.innerWidth/2) * 0.001;
+            mouseY = (e.clientY - window.innerHeight/2) * 0.001;
+        });
+
+        window.addEventListener('scroll', () => {
+            scrollY = window.scrollY;
+        });
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            rotors.forEach(r => r.userData.prop.rotation.y += r.userData.speed);
+
+            gridHelper.position.z = (time * 8) % 1;
+            particles.position.z = (time * 8) % 20;
+
+            droneGroup.position.y = Math.sin(time * 1.5) * 0.15 * CONFIG.drone.hoverIntensity;
+
+            // Scrollytelling Logic
+            const scrollProgress = Math.min(scrollY / (document.body.scrollHeight - window.innerHeight), 1);
+            
+            let targetRotY = -mouseX * 0.5; 
+            let targetRotX = -mouseY * 0.5;
+            let targetPosZ = 0;
+            let targetPosX = 0;
+
+            if(scrollProgress < 0.2) {
+                targetRotY += 0;
+            } else if (scrollProgress < 0.5) {
+                targetRotY += 0.8; 
+                targetPosX = -1.5; 
+            } else if (scrollProgress < 0.8) {
+                targetRotX += -0.5;
+                targetRotY += time * 0.2; 
+            } else {
+                targetRotY += -0.5;
+                targetPosZ = 2; 
+            }
+
+            droneGroup.rotation.y += (targetRotY - droneGroup.rotation.y) * 0.05;
+            droneGroup.rotation.x += (targetRotX - droneGroup.rotation.x) * 0.05;
+            droneGroup.position.z += (targetPosZ - droneGroup.position.z) * 0.05;
+            droneGroup.position.x += (targetPosX - droneGroup.position.x) * 0.05;
+
+            camera.position.x += (mouseX * 2 - camera.position.x) * 0.02;
+            camera.position.y += (-mouseY * 2 + 2 - camera.position.y) * 0.02;
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON HORIZON | Digital Portfolio</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Retro Pixel & Terminal styles -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        :root {
+            --neon-pink: #ff00ff;
+            --neon-cyan: #00ffff;
+            --bg-dark: #050011;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-dark);
+            font-family: 'VT323', monospace; /* Terminal Font */
+            color: white;
+            overflow-x: hidden;
+        }
+
+        h1, h2, .pixel-font {
+            font-family: 'Press Start 2P', cursive; /* Pixel Font */
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* --- CRT SCREEN EFFECT --- */
+        .crt::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            opacity: 0.4;
+            position: fixed;
+            top: 0;
+            z-index: 3;
+            animation: scan 6s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+
+        /* --- RETRO UI ELEMENTS --- */
+        .retro-card {
+            background: rgba(5, 0, 17, 0.8);
+            border: 2px solid var(--neon-pink);
+            box-shadow: 4px 4px 0px var(--neon-cyan);
+            transition: transform 0.2s;
+        }
+        .retro-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px var(--neon-cyan);
+        }
+
+        .glitch-text:hover {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            color: var(--neon-pink);
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        .social-link {
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .social-link:hover {
+            background: var(--neon-cyan);
+            color: black;
+            box-shadow: 0 0 15px var(--neon-cyan);
+        }
+    </style>
+</head>
+<body class="crt antialiased">
+
+    <div class="scanline"></div>
+    <div id="canvas-container"></div>
+
+    <!-- UI CONTENT -->
+    <main class="relative z-10 min-h-screen flex flex-col items-center pt-20 pb-10 px-4">
+        
+        <!-- HEADER -->
+        <header class="text-center mb-12">
+            <div class="inline-block border-2 border-white px-4 py-2 mb-6">
+                <span class="text-xl md:text-2xl tracking-widest animate-pulse">INSERT COIN TO START</span>
+            </div>
+            <h1 class="text-4xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-b from-white to-pink-500 mb-4 glitch-text cursor-default" style="text-shadow: 4px 4px 0px #00ffff;">
+                ALEX.DEV
+            </h1>
+            <p class="text-cyan-300 text-xl md:text-2xl tracking-widest uppercase">[ FULL STACK CREATOR ]</p>
+        </header>
+
+        <!-- LINKS CONTAINER (Linktree style) -->
+        <div class="w-full max-w-lg space-y-6">
+            
+            <!-- Link 1 -->
+            <a href="#" class="retro-card block p-4 group relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full bg-pink-600 opacity-0 group-hover:opacity-20 transition"></div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl text-white mb-1 group-hover:text-pink-400 transition">> LATEST PROJECTS</h2>
+                        <p class="text-gray-400 text-lg">See what I'm building</p>
+                    </div>
+                    <span class="text-2xl text-cyan-400 group-hover:translate-x-2 transition">→</span>
+                </div>
+            </a>
+
+            <!-- Link 2 -->
+            <a href="#" class="retro-card block p-4 group relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full bg-cyan-600 opacity-0 group-hover:opacity-20 transition"></div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl text-white mb-1 group-hover:text-cyan-400 transition">> STREAM SETUP</h2>
+                        <p class="text-gray-400 text-lg">My gear & config</p>
+                    </div>
+                    <span class="text-2xl text-pink-400 group-hover:translate-x-2 transition">→</span>
+                </div>
+            </a>
+
+            <!-- Link 3 -->
+            <a href="#" class="retro-card block p-4 group relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full bg-purple-600 opacity-0 group-hover:opacity-20 transition"></div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl text-white mb-1 group-hover:text-purple-400 transition">> MERCH STORE</h2>
+                        <p class="text-gray-400 text-lg">Retro apparel</p>
+                    </div>
+                    <span class="text-2xl text-white group-hover:translate-x-2 transition">→</span>
+                </div>
+            </a>
+
+        </div>
+
+        <!-- SKILLS GRID -->
+        <div class="mt-16 max-w-2xl w-full">
+            <h3 class="text-center text-2xl mb-8 text-pink-500 pixel-font underline decoration-wavy">SKILL TREE</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div class="border border-gray-700 bg-black/50 p-2 hover:border-cyan-400 transition cursor-crosshair">REACT.JS</div>
+                <div class="border border-gray-700 bg-black/50 p-2 hover:border-cyan-400 transition cursor-crosshair">THREE.JS</div>
+                <div class="border border-gray-700 bg-black/50 p-2 hover:border-cyan-400 transition cursor-crosshair">NODE.JS</div>
+                <div class="border border-gray-700 bg-black/50 p-2 hover:border-cyan-400 transition cursor-crosshair">WEBGL</div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="mt-auto pt-20 text-center w-full">
+            <div class="flex justify-center gap-4 mb-8">
+                <a href="#" class="social-link px-4 py-2 text-lg transition">TWITTER</a>
+                <a href="#" class="social-link px-4 py-2 text-lg transition">GITHUB</a>
+                <a href="#" class="social-link px-4 py-2 text-lg transition">DISCORD</a>
+            </div>
+            
+            <div class="text-gray-500 text-lg">
+                <p class="mb-2">© 2025 NEON HORIZON</p>
+                <div class="flex justify-center gap-6 text-sm">
+                    <a href="mailto:quakestartup@gmail.com" class="hover:text-white transition">
+                        [ CONTACT DEV ]
+                    </a>
+                    <a href="https://t.me/Quake234" target="_blank" class="hover:text-white transition">
+                        [ TELEGRAM ]
+                    </a>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- THREE.JS SYNTHWAVE SCENE -->
+    <script>
+        // --- CONFIGURATION ---
+        const CONFIG = {
+            gridColor: 0xff00ff, // Magenta
+            gridColor2: 0x00ffff, // Cyan
+            sunColor: 0xffaa00,   // Orange/Yellow
+            speed: 0.5
+        };
+
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050011, 0.015); // Deep purple fog
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        // Low camera angle for that retro horizon look
+        camera.position.set(0, 5, 20); 
+        camera.lookAt(0, 0, -50);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // --- 1. THE SUN ---
+        const sunGeo = new THREE.SphereGeometry(20, 32, 32);
+        // Gradient shader material for the sun (striped look)
+        const sunMat = new THREE.MeshBasicMaterial({ 
+            color: CONFIG.sunColor,
+            wireframe: true, // Wireframe style for faster performance/retro look
+            transparent: true,
+            opacity: 0.8
+        });
+        const sun = new THREE.Mesh(sunGeo, sunMat);
+        sun.position.set(0, 10, -100);
+        scene.add(sun);
+
+        // Sun Glow
+        const sunLight = new THREE.PointLight(CONFIG.sunColor, 2, 200);
+        sunLight.position.set(0, 10, -90);
+        scene.add(sunLight);
+
+        // --- 2. INFINITE GRID (TERRAIN) ---
+        // We use two grids to simulate infinite movement
+        const gridHelper = new THREE.GridHelper(200, 50, CONFIG.gridColor, CONFIG.gridColor2);
+        gridHelper.position.y = -5;
+        scene.add(gridHelper);
+
+        const gridHelper2 = new THREE.GridHelper(200, 50, CONFIG.gridColor, CONFIG.gridColor2);
+        gridHelper2.position.y = -5;
+        gridHelper2.position.z = -200; // Placed behind the first
+        scene.add(gridHelper2);
+
+        // --- 3. FLOATING GEOMETRY ---
+        const shapes = [];
+        const geomTypes = [
+            new THREE.IcosahedronGeometry(1, 0),
+            new THREE.BoxGeometry(1, 1, 1),
+            new THREE.OctahedronGeometry(1, 0)
+        ];
+
+        const shapeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true });
+
+        for(let i=0; i<20; i++) {
+            const geo = geomTypes[Math.floor(Math.random() * geomTypes.length)];
+            const mesh = new THREE.Mesh(geo, shapeMat);
+            
+            // Random position
+            mesh.position.x = (Math.random() - 0.5) * 100;
+            mesh.position.y = (Math.random() * 10) - 2;
+            mesh.position.z = (Math.random() * -100);
+            
+            mesh.userData = {
+                rotSpeedX: (Math.random() - 0.5) * 0.02,
+                rotSpeedY: (Math.random() - 0.5) * 0.02,
+                floatSpeed: Math.random() * 0.02,
+                floatOffset: Math.random() * Math.PI * 2
+            };
+            
+            shapes.push(mesh);
+            scene.add(mesh);
+        }
+
+        // --- ANIMATION LOOP ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            // Move Grids to simulate speed
+            const speed = 15 * CONFIG.speed;
+            gridHelper.position.z += 0.1 * speed;
+            gridHelper2.position.z += 0.1 * speed;
+
+            // Reset grid positions to loop
+            if(gridHelper.position.z >= 200) gridHelper.position.z = -200;
+            if(gridHelper2.position.z >= 200) gridHelper2.position.z = -200;
+
+            // Rotate Sun
+            sun.rotation.y += 0.002;
+            sun.rotation.z += 0.001;
+
+            // Animate Shapes
+            shapes.forEach(shape => {
+                shape.rotation.x += shape.userData.rotSpeedX;
+                shape.rotation.y += shape.userData.rotSpeedY;
+                shape.position.y += Math.sin(time * 2 + shape.userData.floatOffset) * 0.01;
+                
+                // Move shapes toward camera to enhance speed effect
+                shape.position.z += 0.1 * speed;
+                if(shape.position.z > 20) shape.position.z = -100; // Reset
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // --- RESIZE HANDLER ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>

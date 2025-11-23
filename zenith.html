@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZENITH | Sky-High Living</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Serif for Luxury, Sans for UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        /* --- LUXURY CONFIGURATION --- */
+        :root {
+            --gold: #d4af37;
+            --gold-dim: #aa8c2c;
+            --charcoal: #121212;
+            --dark-gray: #1a1a1a;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--charcoal);
+            font-family: 'Lato', sans-serif;
+            color: #e5e5e5;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .serif-font {
+            font-family: 'Cinzel', serif;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Behind content */
+        }
+
+        /* Smooth fade overlay for readability */
+        .gradient-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(18,18,18,0.9) 0%, rgba(18,18,18,0.7) 30%, rgba(18,18,18,0) 100%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Luxury UI Elements */
+        .gold-text {
+            color: var(--gold);
+            background: linear-gradient(to bottom, #fbf5b7, #d4af37);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-border {
+            border: 1px solid var(--gold);
+        }
+
+        .glass-dark {
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid var(--gold-dim);
+        }
+
+        .btn-luxury {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-luxury:hover {
+            background: var(--gold);
+            color: black;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: var(--gold); }
+
+        /* Section Spacing */
+        section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 4rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="canvas-container"></div>
+    <div class="gradient-overlay"></div>
+
+    <!-- NAVIGATION -->
+    <nav class="fixed w-full z-50 top-0 px-8 py-6 flex justify-between items-center mix-blend-difference text-white">
+        <div class="text-2xl serif-font tracking-widest font-bold">ZENITH</div>
+        <div class="hidden md:flex gap-12 text-xs tracking-[0.2em] uppercase">
+            <a href="#vision" class="hover:text-yellow-500 transition">The Vision</a>
+            <a href="#residences" class="hover:text-yellow-500 transition">Residences</a>
+            <a href="#amenities" class="hover:text-yellow-500 transition">Amenities</a>
+            <a href="#inquire" class="hover:text-yellow-500 transition">Contact</a>
+        </div>
+        <button class="border border-white px-6 py-2 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition">
+            Book Viewing
+        </button>
+    </nav>
+
+    <!-- SCROLL PROGRESS INDICATOR -->
+    <div class="fixed right-8 top-1/2 transform -translate-y-1/2 flex flex-col gap-4 z-40 hidden md:flex">
+        <div class="w-[1px] h-8 bg-gray-700 mx-auto"></div>
+        <div class="w-2 h-2 rounded-full bg-yellow-600"></div>
+        <div class="w-2 h-2 rounded-full bg-gray-700"></div>
+        <div class="w-2 h-2 rounded-full bg-gray-700"></div>
+        <div class="w-2 h-2 rounded-full bg-gray-700"></div>
+        <div class="w-[1px] h-8 bg-gray-700 mx-auto"></div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="relative z-10 w-full md:w-1/2">
+
+        <!-- 1. HERO -->
+        <section id="home">
+            <div class="mb-6 text-yellow-500 text-xs tracking-[0.4em] uppercase">New York • London • Dubai</div>
+            <h1 class="text-6xl md:text-8xl leading-none mb-8 gold-text">
+                RISE <br> ABOVE <br> IT ALL
+            </h1>
+            <p class="text-gray-400 text-lg max-w-md mb-10 leading-relaxed">
+                Experience the pinnacle of architectural excellence. 
+                Zenith offers a living experience that transcends the ordinary, 
+                suspended 800 feet above the city skyline.
+            </p>
+            <div class="flex gap-6">
+                <button class="btn-luxury px-8 py-4 text-sm uppercase tracking-widest">
+                    View Penthouse
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. THE VISION -->
+        <section id="vision">
+            <span class="text-6xl text-gray-800 serif-font absolute -z-10 opacity-20 -ml-10">01</span>
+            <h2 class="text-4xl md:text-5xl mb-8 serif-font">SCULPTED BY <br> THE WIND</h2>
+            <div class="glass-dark p-8 max-w-md">
+                <p class="text-gray-300 mb-6 leading-relaxed">
+                    Designed by award-winning architect Elena Vos, the Zenith Tower is not just a building; it is a kinetic sculpture.
+                    Each floor rotates 1.2 degrees, creating a spiraling form that maximizes panoramic views for every resident while reducing wind load.
+                </p>
+                <ul class="text-sm text-gray-400 space-y-4">
+                    <li class="flex items-center gap-4">
+                        <span class="w-8 h-[1px] bg-yellow-600"></span> 85 Stories
+                    </li>
+                    <li class="flex items-center gap-4">
+                        <span class="w-8 h-[1px] bg-yellow-600"></span> LEED Platinum Certified
+                    </li>
+                    <li class="flex items-center gap-4">
+                        <span class="w-8 h-[1px] bg-yellow-600"></span> Structural Glass Facade
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 3. RESIDENCES -->
+        <section id="residences">
+            <span class="text-6xl text-gray-800 serif-font absolute -z-10 opacity-20 -ml-10">02</span>
+            <h2 class="text-4xl md:text-5xl mb-12 serif-font">BESPOKE <br> INTERIORS</h2>
+            
+            <div class="space-y-12">
+                <div class="group cursor-pointer">
+                    <h3 class="text-2xl text-white group-hover:text-yellow-500 transition mb-2">The Estate Collection</h3>
+                    <p class="text-gray-500 text-sm mb-4">Floors 20-50</p>
+                    <div class="h-[1px] w-full bg-gray-800 group-hover:bg-yellow-600 transition duration-500"></div>
+                    <p class="text-gray-400 mt-4 text-sm max-w-sm">
+                        Open-concept layouts featuring Italian marble flooring, 
+                        chef's kitchens with Gaggenau appliances, and floor-to-ceiling windows.
+                    </p>
+                </div>
+
+                <div class="group cursor-pointer">
+                    <h3 class="text-2xl text-white group-hover:text-yellow-500 transition mb-2">The Sky Villas</h3>
+                    <p class="text-gray-500 text-sm mb-4">Floors 51-80</p>
+                    <div class="h-[1px] w-full bg-gray-800 group-hover:bg-yellow-600 transition duration-500"></div>
+                    <p class="text-gray-400 mt-4 text-sm max-w-sm">
+                        Duplex residences with private internal elevators, double-height living rooms, 
+                        and 360-degree views of the metropolis.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. AMENITIES (Grid) -->
+        <section id="amenities">
+            <span class="text-6xl text-gray-800 serif-font absolute -z-10 opacity-20 -ml-10">03</span>
+            <h2 class="text-4xl md:text-5xl mb-12 serif-font">UNRIVALED <br> AMENITIES</h2>
+            
+            <div class="grid grid-cols-2 gap-6 max-w-md">
+                <div class="glass-dark p-6 text-center hover:bg-white/5 transition">
+                    <div class="text-3xl mb-2 text-yellow-500">✦</div>
+                    <h4 class="text-sm uppercase tracking-widest font-bold">Sky Pool</h4>
+                    <p class="text-xs text-gray-500 mt-2">Infinity edge on floor 45</p>
+                </div>
+                <div class="glass-dark p-6 text-center hover:bg-white/5 transition">
+                    <div class="text-3xl mb-2 text-yellow-500">✦</div>
+                    <h4 class="text-sm uppercase tracking-widest font-bold">Private Spa</h4>
+                    <p class="text-xs text-gray-500 mt-2">Sauna, Steam & Treatment</p>
+                </div>
+                <div class="glass-dark p-6 text-center hover:bg-white/5 transition">
+                    <div class="text-3xl mb-2 text-yellow-500">✦</div>
+                    <h4 class="text-sm uppercase tracking-widest font-bold">Concierge</h4>
+                    <p class="text-xs text-gray-500 mt-2">24/7 White Glove Service</p>
+                </div>
+                <div class="glass-dark p-6 text-center hover:bg-white/5 transition">
+                    <div class="text-3xl mb-2 text-yellow-500">✦</div>
+                    <h4 class="text-sm uppercase tracking-widest font-bold">Cinema</h4>
+                    <p class="text-xs text-gray-500 mt-2">Private 4K IMAX Screening</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. INQUIRY FORM -->
+        <section id="inquire">
+            <h2 class="text-4xl md:text-5xl mb-4 serif-font">SECURE YOUR <br> LEGACY</h2>
+            <p class="text-gray-400 mb-10">Residences starting from $2.5M. Penthouses upon request.</p>
+            
+            <form class="w-full max-w-md space-y-6">
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Full Name</label>
+                    <input type="text" class="w-full bg-transparent border-b border-gray-700 py-2 text-white focus:border-yellow-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Email Address</label>
+                    <input type="email" class="w-full bg-transparent border-b border-gray-700 py-2 text-white focus:border-yellow-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Interest Level</label>
+                    <select class="w-full bg-transparent border-b border-gray-700 py-2 text-white focus:border-yellow-500 focus:outline-none transition">
+                        <option class="bg-black">Scheduling a Viewing</option>
+                        <option class="bg-black">Requesting Floor Plans</option>
+                        <option class="bg-black">Investment Opportunities</option>
+                    </select>
+                </div>
+                <button type="button" class="w-full bg-white text-black font-bold py-4 uppercase tracking-widest hover:bg-yellow-500 transition mt-8">
+                    Submit Inquiry
+                </button>
+            </form>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="py-12 border-t border-gray-800 text-xs text-gray-600 uppercase tracking-widest">
+            <p class="mb-4">&copy; 2025 Zenith Development Group.</p>
+            <div class="flex gap-6">
+                <a href="mailto:quakestartup@gmail.com" class="hover:text-white transition">
+                    <span class="text-yellow-500">✉</span> Contact Dev
+                </a>
+                <span class="text-gray-800">|</span>
+                <a href="https://t.me/Quake234" target="_blank" class="hover:text-white transition">
+                    <span class="text-yellow-500">✈</span> Telegram
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- THREE.JS SCENE -->
+    <script>
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x121212);
+        scene.fog = new THREE.FogExp2(0x121212, 0.02); // Luxury dark fog
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        // Starting position looking UP at the tower
+        camera.position.set(15, 5, 15);
+        camera.lookAt(0, 10, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // Physically correct lights for luxury feel
+        renderer.physicallyCorrectLights = true;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        container.appendChild(renderer.domElement);
+
+        // --- LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+        scene.add(ambientLight);
+
+        // Gold Rim Light
+        const spotLight = new THREE.SpotLight(0xd4af37, 100);
+        spotLight.position.set(20, 50, 20);
+        spotLight.angle = 0.5;
+        spotLight.penumbra = 0.5;
+        scene.add(spotLight);
+
+        // Cool Blue Fill Light (Contrast)
+        const fillLight = new THREE.PointLight(0x445566, 20);
+        fillLight.position.set(-20, 10, -20);
+        scene.add(fillLight);
+
+        // --- THE TOWER (Procedural Generation) ---
+        const towerGroup = new THREE.Group();
+        scene.add(towerGroup);
+
+        // Materials
+        const glassMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0x111111,
+            metalness: 0.9,
+            roughness: 0.1,
+            transmission: 0.2, // Slight transparency
+            transparent: true
+        });
+
+        const frameMaterial = new THREE.MeshStandardMaterial({
+            color: 0x333333,
+            metalness: 0.8,
+            roughness: 0.4
+        });
+
+        const goldMaterial = new THREE.MeshStandardMaterial({
+            color: 0xd4af37,
+            metalness: 1.0,
+            roughness: 0.2,
+            emissive: 0x332200
+        });
+
+        // Generate Floors
+        const numFloors = 60;
+        const floorHeight = 0.8;
+        const baseSize = 4;
+
+        for (let i = 0; i < numFloors; i++) {
+            const floorGroup = new THREE.Group();
+            
+            // Rotation logic: Twist the tower
+            const rotationY = i * 0.05; 
+            floorGroup.rotation.y = rotationY;
+            floorGroup.position.y = i * floorHeight;
+
+            // 1. Main Glass Block
+            const glassGeo = new THREE.BoxGeometry(baseSize, floorHeight - 0.05, baseSize);
+            const glassMesh = new THREE.Mesh(glassGeo, glassMaterial);
+            floorGroup.add(glassMesh);
+
+            // 2. Floor Slab (Frame)
+            const slabGeo = new THREE.BoxGeometry(baseSize + 0.2, 0.1, baseSize + 0.2);
+            const slabMesh = new THREE.Mesh(slabGeo, frameMaterial);
+            slabMesh.position.y = -(floorHeight / 2);
+            floorGroup.add(slabMesh);
+
+            // 3. Gold Accents (Vertical Pillars on corners)
+            const pillarGeo = new THREE.BoxGeometry(0.1, floorHeight, 0.1);
+            
+            const p1 = new THREE.Mesh(pillarGeo, goldMaterial);
+            p1.position.set(baseSize/2, 0, baseSize/2);
+            floorGroup.add(p1);
+
+            const p2 = new THREE.Mesh(pillarGeo, goldMaterial);
+            p2.position.set(-baseSize/2, 0, -baseSize/2);
+            floorGroup.add(p2);
+
+            towerGroup.add(floorGroup);
+        }
+
+        // --- ANIMATION & SCROLL ---
+        let scrollY = 0;
+        let mouseX = 0;
+        let mouseY = 0;
+
+        window.addEventListener('scroll', () => {
+            scrollY = window.scrollY;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.0005;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.0005;
+        });
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = clock.getElapsedTime();
+            const docHeight = document.body.scrollHeight - window.innerHeight;
+            const scrollPercent = scrollY / docHeight;
+
+            // 1. Rotate Tower Slowly
+            towerGroup.rotation.y = time * 0.05;
+
+            // 2. Camera Cinematic Movement based on Scroll
+            // Start: Low angle looking up
+            // End: High angle looking down (Helicopter view)
+            
+            const targetCamY = 5 + (scrollPercent * 50); // Move up
+            const targetCamRadius = 15 + (scrollPercent * 10); // Move out slightly
+            
+            // Orbit logic
+            const angle = time * 0.1 + (scrollPercent * Math.PI); 
+            
+            camera.position.x += (Math.sin(angle) * targetCamRadius - camera.position.x) * 0.05;
+            camera.position.z += (Math.cos(angle) * targetCamRadius - camera.position.z) * 0.05;
+            camera.position.y += (targetCamY - camera.position.y) * 0.05;
+
+            // Mouse Parallax
+            camera.position.x += mouseX;
+            camera.position.y += -mouseY;
+
+            // Look at the "current" floor based on scroll
+            const lookAtY = scrollPercent * (numFloors * floorHeight);
+            camera.lookAt(0, lookAtY, 0);
+
+            renderer.render(scene, camera);
+        }
+
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
